@@ -70,17 +70,13 @@ export default function MapCanvas({
     const seen = new Set<string>()
 
     checks.forEach(check => {
+      if (check.x == null || check.y == null) return
       seen.add(check.id)
       const existing = markers.get(check.id)
       if (existing) {
         existing.setLatLng([check.y, check.x])
-        existing.bindTooltip(check.name, { direction: 'top', offset: L.point(0, -10) })
-        if (selectedCheckId === check.id) {
-          existing.setIcon(selectedIcon)
-        } else {
-          existing.setIcon(defaultIcon)
-        }
-        existing.getTooltip()?.setContent(check.name)
+        existing.setTooltipContent(check.name)
+        existing.setIcon(selectedCheckId === check.id ? selectedIcon : defaultIcon)
         return
       }
 
@@ -113,7 +109,7 @@ export default function MapCanvas({
     const seen = new Set<string>()
 
     Object.entries(cursors).forEach(([id, cursor]) => {
-      if (id === 'self') return
+      if (id === 'self' || cursor.x == null || cursor.y == null) return
       seen.add(id)
 
       const existing = layers.get(id)
@@ -136,7 +132,7 @@ export default function MapCanvas({
         html: `<span style="background:${color};color:#fff;padding:2px 6px;border-radius:4px;font-size:11px">${cursor.name}</span>`,
         iconSize: [0, 0],
       })
-      L.marker([cursor.y - 15, cursor.x], { icon: label, interactive: false }).addTo(map)
+      L.marker([cursor.y! - 15, cursor.x!], { icon: label, interactive: false }).addTo(map)
 
       layers.set(id, { dot, label: label as any })
     })
