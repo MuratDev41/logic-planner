@@ -1,8 +1,14 @@
 import { Server as HTTPServer } from 'http';
 import { Server } from 'socket.io';
 
+let io: Server;
+
+export function getIO(): Server {
+  return io;
+}
+
 export function setupSocket(httpServer: HTTPServer) {
-  const io = new Server(httpServer, {
+  io = new Server(httpServer, {
     cors: { origin: '*', methods: ['GET', 'POST'] },
   });
 
@@ -22,18 +28,6 @@ export function setupSocket(httpServer: HTTPServer) {
         socket.leave(currentSection);
         currentSection = null;
       }
-    });
-
-    socket.on('check-added', (data) => {
-      if (currentSection) io.to(currentSection).emit('check-added', data);
-    });
-
-    socket.on('check-updated', (data) => {
-      if (currentSection) io.to(currentSection).emit('check-updated', data);
-    });
-
-    socket.on('check-deleted', (data) => {
-      if (currentSection) io.to(currentSection).emit('check-deleted', data);
     });
 
     socket.on('cursor-move', (data) => {

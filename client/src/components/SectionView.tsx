@@ -136,16 +136,11 @@ export default function SectionView() {
   const removeCheck = async (id: string) => {
     if (!confirm('Delete this check?')) return
     await api.checks.delete(id)
-    setChecks(prev => prev.filter(c => c.id !== id))
-    getSocket().emit('check-deleted', { id })
   }
 
   const onSaved = () => {
     if (!sectionId) return
-    api.checks.list(sectionId).then(newChecks => {
-      setChecks(newChecks)
-      getSocket().emit('check-added', {})
-    })
+    api.checks.list(sectionId).then(setChecks)
   }
 
   const deleteSection = async () => {

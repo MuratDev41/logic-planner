@@ -1,6 +1,7 @@
 import { Router, Request, Response } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { dbRun, dbGet, dbAll } from '../db.js';
+import { getIO } from '../socket.js';
 
 const router = Router();
 
@@ -20,6 +21,7 @@ router.post('/section/:sectionId', (req: Request, res: Response) => {
   dbRun('INSERT INTO checks (id, section_id, name, description, x, y, logic, created_by, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [id, req.params.sectionId, name.trim(), '', x, y, logic || '', created_by || 'Anonymous', now, now]);
   const check = dbGet<any>('SELECT * FROM checks WHERE id = ?', [id]);
+  getIO().to(req.params.sectionId).emit('check-added', check);
   res.status(201).json(check);
 });
 
@@ -39,6 +41,7 @@ router.put('/:id', (req: Request, res: Response) => {
       req.params.id
     ]);
   const check = dbGet<any>('SELECT * FROM checks WHERE id = ?', [req.params.id]);
+  getIO().to(existing.section_id).emit('check-updated', check);
   res.json(check);
 });
 
@@ -46,6 +49,7 @@ router.delete('/:id', (req: Request, res: Response) => {
   const existing = dbGet<any>('SELECT * FROM checks WHERE id = ?', [req.params.id]);
   if (!existing) { res.status(404).json({ error: 'Check not found' }); return; }
   dbRun('DELETE FROM checks WHERE id = ?', [req.params.id]);
+  getIO().to(existing.section_id).emit('check-deleted', { id: req.params.id });
   res.json({ ok: true });
 });
 
